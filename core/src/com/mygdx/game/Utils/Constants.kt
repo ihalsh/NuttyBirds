@@ -18,5 +18,6 @@ class Constants {
         const val HALF = 0.5f
         const val PHYSICS_BUILDINGS_LAYER = "Physics_Buildings"
         const val FLOOR_LAYER = "Physics_Floor"
+        const val PHYSICS_BIRDS_LAYER = "Physics_Birds"
     }
 }
