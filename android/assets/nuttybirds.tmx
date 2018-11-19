@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.2" tiledversion="1.2.0" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="32" tileheight="32" infinite="0" nextlayerid="6" nextobjectid="8">
+ <tileset firstgid="1" name="floor" tilewidth="32" tileheight="32" tilecount="10" columns="5">
+  <image source="floor.png" width="160" height="64"/>
+ </tileset>
+ <imagelayer id="2" name="Background">
+  <image source="bg.png" width="960" height="540"/>
+ </imagelayer>
+ <layer id="1" name="Ground" width="30" height="17">
+  <data encoding="base64" compression="zlib">
+   eJztxscNADAMgECnl/0HDlP4E5BOIsLMzOzfCioaetIPTCxsnKS/eH8sAUk=
+  </data>
+ </layer>
+ <objectgroup id="4" name="Physics_Buildings">
+  <object id="2" x="704" y="352" width="32" height="128"/>
+  <object id="3" x="608" y="320" width="128" height="32"/>
+  <object id="4" x="480" y="320" width="128" height="32"/>
+  <object id="5" x="480" y="352" width="32" height="128"/>
+ </objectgroup>
+ <objectgroup id="5" name="Physics_Birds">
+  <object id="7" x="576" y="384" width="96" height="96">
+   <ellipse/>
+  </object>
+ </objectgroup>
+</map>

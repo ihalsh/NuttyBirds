@@ -1,14 +1,16 @@
 package com.mygdx.game
 
 import com.badlogic.gdx.graphics.Color.BLACK
+import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
-import com.badlogic.gdx.math.Vector2
+import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
 import com.badlogic.gdx.physics.box2d.Body
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.mygdx.game.Utils.Assets
 import com.mygdx.game.Utils.Constants.Companion.UNITS_PER_METER
 import com.mygdx.game.Utils.Constants.Companion.WORLD_HEIGHT
 import com.mygdx.game.Utils.Constants.Companion.WORLD_WIDTH
@@ -22,28 +24,28 @@ import ktx.graphics.use
 class GameScreen : KtxScreen {
 
     private val shapeRenderer = ShapeRenderer()
-    private val viewport = FitViewport(WORLD_WIDTH, WORLD_HEIGHT)
     private val batch = SpriteBatch()
-
+    private val camera = OrthographicCamera()
+    private val viewport = FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera)
     private val world: World = createWorld(gravity = earthGravity, allowSleep = true)
     private val debugRenderer: Box2DDebugRenderer = Box2DDebugRenderer()
-    // Building body from scratch
-    private val body: Body = world.body {
-        type = DynamicBody
-        position.set(100f, 200f)
-        box(160 / UNITS_PER_METER, 160 / UNITS_PER_METER)
-        { density = 40f }
+    private val tiledMap = Assets.tiledMap
+    private val orthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
+
+    override fun show() {
+        viewport.apply()
+        camera.update()
+        orthogonalTiledMapRenderer.setView(camera)
     }
+
 
     private fun update(delta: Float) {
 
         world.step(delta, 6, 2)
-        body.isAwake = true
 
     }
 
     override fun render(delta: Float) {
-        viewport.apply()
         clearScreen(BLACK.r, BLACK.g, BLACK.b)
         update(delta)
         draw()
@@ -60,7 +62,7 @@ class GameScreen : KtxScreen {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.end()
 
-        debugRenderer.render(world, viewport.camera.combined)
+        orthogonalTiledMapRenderer.render()
     }
 
     override fun resize(width: Int, height: Int) {
@@ -69,5 +71,7 @@ class GameScreen : KtxScreen {
 
     override fun dispose() {
         shapeRenderer.dispose()
+        orthogonalTiledMapRenderer.dispose()
+        batch.dispose()
     }
 }

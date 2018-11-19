@@ -9,5 +9,6 @@ class Constants {
         const val UNITS_PER_METER = 16f
         const val PROGRESS_BAR_WIDTH = 100f
         const val PROGRESS_BAR_HEIGHT = 25f
+        const val MAP_FILE_NAME = "nuttybirds.tmx"
     }
 }

@@ -11,8 +11,10 @@ class NuttyGame : KtxGame<Screen>() {
 
         Box2D.init()
 
+        Assets.loadAssets()
+
         addScreen(LoadingScreen(this))
-        addScreen(GameScreen(this))
+        addScreen(GameScreen())
 
         setScreen<LoadingScreen>()
     }
