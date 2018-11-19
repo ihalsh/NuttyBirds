@@ -5,18 +5,17 @@ import com.badlogic.gdx.graphics.OrthographicCamera
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
-import com.badlogic.gdx.physics.box2d.Body
-import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody
 import com.badlogic.gdx.physics.box2d.Box2DDebugRenderer
 import com.badlogic.gdx.physics.box2d.World
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.mygdx.game.Utils.Assets
-import com.mygdx.game.Utils.Constants.Companion.UNITS_PER_METER
+import com.mygdx.game.Utils.Constants.Companion.UNIT_HEIGHT
+import com.mygdx.game.Utils.Constants.Companion.UNIT_WIDTH
 import com.mygdx.game.Utils.Constants.Companion.WORLD_HEIGHT
 import com.mygdx.game.Utils.Constants.Companion.WORLD_WIDTH
+import com.mygdx.game.Utils.TiledObjectBodyBuilder
 import ktx.app.KtxScreen
 import ktx.app.clearScreen
-import ktx.box2d.body
 import ktx.box2d.createWorld
 import ktx.box2d.earthGravity
 import ktx.graphics.use
@@ -26,6 +25,7 @@ class GameScreen : KtxScreen {
     private val shapeRenderer = ShapeRenderer()
     private val batch = SpriteBatch()
     private val camera = OrthographicCamera()
+    private val box2dCam = OrthographicCamera(UNIT_WIDTH, UNIT_HEIGHT)
     private val viewport = FitViewport(WORLD_WIDTH, WORLD_HEIGHT, camera)
     private val world: World = createWorld(gravity = earthGravity, allowSleep = true)
     private val debugRenderer: Box2DDebugRenderer = Box2DDebugRenderer()
@@ -36,13 +36,14 @@ class GameScreen : KtxScreen {
         viewport.apply()
         camera.update()
         orthogonalTiledMapRenderer.setView(camera)
+        TiledObjectBodyBuilder.buildFloorAndBuildingBodies(tiledMap, world)
     }
 
 
     private fun update(delta: Float) {
-
         world.step(delta, 6, 2)
-
+        box2dCam.position.set(UNIT_WIDTH / 2, UNIT_HEIGHT / 2, 0f)
+        box2dCam.update()
     }
 
     override fun render(delta: Float) {
@@ -53,16 +54,16 @@ class GameScreen : KtxScreen {
     }
 
     private fun draw() {
-        batch.projectionMatrix = viewport.camera.combined
+        batch.projectionMatrix = camera.combined
         batch.use { }
+        orthogonalTiledMapRenderer.render()
     }
 
     private fun drawDebug() {
-        shapeRenderer.projectionMatrix = viewport.camera.combined
+        shapeRenderer.projectionMatrix = camera.combined
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line)
         shapeRenderer.end()
-
-        orthogonalTiledMapRenderer.render()
+        debugRenderer.render(world, box2dCam.combined)
     }
 
     override fun resize(width: Int, height: Int) {
