@@ -9,21 +9,23 @@ import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.StaticBody
 import com.badlogic.gdx.physics.box2d.CircleShape
 import com.badlogic.gdx.physics.box2d.PolygonShape
 import com.badlogic.gdx.physics.box2d.World
+import com.mygdx.game.Utils.Constants.Companion.ENEMY
 import com.mygdx.game.Utils.Constants.Companion.FLOOR_LAYER
 import com.mygdx.game.Utils.Constants.Companion.HALF
 import com.mygdx.game.Utils.Constants.Companion.PHYSICS_BIRDS_LAYER
 import com.mygdx.game.Utils.Constants.Companion.PHYSICS_BUILDINGS_LAYER
 import com.mygdx.game.Utils.Constants.Companion.PIXELS_PER_TILE
 import ktx.box2d.body
+import ktx.log.info
 
-object TiledObjectBodyBuilder {
+class TiledObjectBodyBuilder {
 
     fun buildFloorAndBuildingBodies(tiledMap: TiledMap, world: World) {
 
         //Draw the floor
         val floorObject = tiledMap.layers.get(FLOOR_LAYER).objects
         val rectangle = getRectangle(floorObject[0] as RectangleMapObject)
-        val body = world.body {
+        world.body {
             type = StaticBody
             fixture(rectangle) { density = 1f }
         }
@@ -33,7 +35,7 @@ object TiledObjectBodyBuilder {
         val objects = tiledMap.layers.get(PHYSICS_BUILDINGS_LAYER).objects
         for (mapObject in objects) {
             val rectangle = getRectangle(mapObject as RectangleMapObject)
-            val body = world.body {
+            world.body {
                 type = DynamicBody
                 fixture(rectangle) { density = 40f }
             }
@@ -43,9 +45,12 @@ object TiledObjectBodyBuilder {
         val birdObjects = tiledMap.layers.get(PHYSICS_BIRDS_LAYER).objects
         for (birdObject in birdObjects) {
             val circle = getCircle(birdObject as EllipseMapObject)
-            val birdBody = world.body {
+            world.body {
                 type = DynamicBody
-                fixture(circle) { density = 10f }
+                fixture(circle) {
+                    density = 10f
+                    userData = ENEMY
+                }
             }
             circle.dispose()
         }

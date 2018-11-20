@@ -10,6 +10,7 @@ class Constants {
         const val PROGRESS_BAR_WIDTH = 100f
         const val PROGRESS_BAR_HEIGHT = 25f
         const val MAP_FILE_NAME = "nuttybirds.tmx"
+        const val ENEMY = "enemy"
         const val UNIT_WIDTH = WORLD_WIDTH / (UNITS_PER_METER * 2)
         const val UNIT_HEIGHT = WORLD_HEIGHT / (UNITS_PER_METER * 2)
 
