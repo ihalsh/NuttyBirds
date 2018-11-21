@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.2" tiledversion="1.2.0" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="11">
+<map version="1.2" tiledversion="1.2.0" orientation="orthogonal" renderorder="right-down" width="30" height="17" tilewidth="32" tileheight="32" infinite="0" nextlayerid="7" nextobjectid="75">
  <tileset firstgid="1" name="floor" tilewidth="32" tileheight="32" tilecount="10" columns="5">
   <image source="floor.png" width="160" height="64"/>
  </tileset>
@@ -15,13 +15,38 @@
   <object id="10" x="0" y="480" width="960" height="64"/>
  </objectgroup>
  <objectgroup id="4" name="Physics_Buildings">
-  <object id="2" x="664" y="352" width="32" height="128"/>
-  <object id="3" x="608" y="320" width="128" height="32"/>
-  <object id="4" x="480" y="320" width="128" height="32"/>
-  <object id="5" x="520" y="352" width="32" height="128"/>
+  <object id="46" x="896" y="352" width="32" height="128"/>
+  <object id="47" x="768" y="352" width="32" height="128"/>
+  <object id="49" x="832" y="320" width="128" height="32"/>
+  <object id="50" x="704" y="320" width="128" height="32"/>
+  <object id="51" x="576" y="320" width="128" height="32"/>
+  <object id="52" x="640" y="352" width="32" height="128"/>
+  <object id="54" x="512" y="352" width="32" height="128"/>
+  <object id="55" x="448" y="320" width="128" height="32"/>
+  <object id="56" x="448" y="352" width="32" height="128"/>
+  <object id="57" x="640" y="192" width="32" height="128"/>
+  <object id="58" x="768" y="192" width="32" height="128"/>
+  <object id="59" x="896" y="192" width="32" height="128"/>
+  <object id="60" x="832" y="160" width="128" height="32"/>
+  <object id="61" x="704" y="160" width="128" height="32"/>
+  <object id="62" x="576" y="160" width="128" height="32"/>
+  <object id="63" x="640" y="32" width="32" height="128"/>
+  <object id="74" x="896" y="32" width="32" height="128"/>
  </objectgroup>
  <objectgroup id="5" name="Physics_Birds">
-  <object id="7" x="560" y="384" width="96" height="96">
+  <object id="69" x="800" y="384" width="96" height="96">
+   <ellipse/>
+  </object>
+  <object id="70" x="672" y="384" width="96" height="96">
+   <ellipse/>
+  </object>
+  <object id="71" x="544" y="384" width="96" height="96">
+   <ellipse/>
+  </object>
+  <object id="72" x="800" y="224" width="96" height="96">
+   <ellipse/>
+  </object>
+  <object id="73" x="672" y="224" width="96" height="96">
    <ellipse/>
   </object>
  </objectgroup>

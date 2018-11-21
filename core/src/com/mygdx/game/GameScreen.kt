@@ -4,15 +4,18 @@ import com.badlogic.gdx.Gdx
 import com.badlogic.gdx.InputAdapter
 import com.badlogic.gdx.graphics.Color.BLACK
 import com.badlogic.gdx.graphics.OrthographicCamera
+import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
-import com.badlogic.gdx.math.MathUtils.cos
-import com.badlogic.gdx.math.MathUtils.sin
+import com.badlogic.gdx.math.Interpolation.circle
+import com.badlogic.gdx.math.MathUtils
+import com.badlogic.gdx.math.MathUtils.*
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.*
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody
 import com.badlogic.gdx.utils.Array
+import com.badlogic.gdx.utils.ObjectMap
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.mygdx.game.Utils.Assets
 import com.mygdx.game.Utils.Constants.Companion.ENEMY
@@ -23,6 +26,7 @@ import com.mygdx.game.Utils.Constants.Companion.UNIT_WIDTH
 import com.mygdx.game.Utils.Constants.Companion.UPPER_ANGLE
 import com.mygdx.game.Utils.Constants.Companion.WORLD_HEIGHT
 import com.mygdx.game.Utils.Constants.Companion.WORLD_WIDTH
+import com.mygdx.game.Utils.SpriteGenerator
 import com.mygdx.game.Utils.TiledObjectBodyBuilder
 import com.mygdx.game.Utils.Utils.angleBetweenTwoPoints
 import com.mygdx.game.Utils.Utils.convertMetresToUnits
@@ -35,6 +39,10 @@ import ktx.box2d.createWorld
 import ktx.box2d.earthGravity
 import ktx.graphics.use
 import ktx.log.info
+import com.sun.awt.SecurityWarning.setPosition
+import sun.awt.windows.ThemeReader.getPosition
+import jdk.nashorn.internal.objects.NativeObject.keys
+import com.badlogic.gdx.graphics.Texture
 
 class GameScreen : KtxScreen {
 
@@ -49,16 +57,35 @@ class GameScreen : KtxScreen {
     private val orthogonalTiledMapRenderer = OrthogonalTiledMapRenderer(tiledMap, batch)
     private val toRemove = Array<Body>()
 
-    private val anchor = Vector2(convertMetresToUnits(3f), convertMetresToUnits(6f))
+    private val anchor = Vector2(convertMetresToUnits(6.125f), convertMetresToUnits(5.75f))
     private val firingPosition = anchor.cpy()
     private var distance = 0f
     private var angle = 0f
+
+    private val sprites = ObjectMap<Body, Sprite>()
+    private val slingshot = Sprite(Assets.slingshot).apply { setPosition(170f, 64f) }
+    private val squirrel = Sprite(Assets.squirrel).apply { setPosition(32f, 64f) }
+    private val staticAcorn = Sprite(Assets.acorn)
 
     override fun show() {
         viewport.apply()
         camera.update()
         orthogonalTiledMapRenderer.setView(camera)
-        TiledObjectBodyBuilder().buildFloorAndBuildingBodies(tiledMap, world)
+
+        with(TiledObjectBodyBuilder()) {
+            buildFloorBodies(tiledMap, world)
+            buildBirdBodies(tiledMap, world)
+            buildBuildingBodies(tiledMap, world)
+        }
+
+        val bodies = Array<Body>()
+        world.getBodies(bodies)
+        for (body in bodies) {
+            val sprite = SpriteGenerator.generateSpriteForBody(body)
+            if (sprite != null) {
+                sprites.put(body, sprite)
+            }
+        }
 
         Gdx.input.inputProcessor = object : InputAdapter() {
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
@@ -79,13 +106,18 @@ class GameScreen : KtxScreen {
     }
 
 
-    private fun createBullet(angle: Float) = world.body {
-        type = DynamicBody
-        circle(radius = 0.5f) { density = 100f }
-        position.set(Vector2(convertUnitsToMetres(firingPosition.x),
-                convertUnitsToMetres(firingPosition.y)))
-        linearVelocity.set(Math.abs(15f/*MAX_STRENGTH*/ * -cos(angle) * (distance / 100f)),
-                Math.abs(15f/*MAX_STRENGTH*/ * -sin(angle) * (distance / 100f)))
+    private fun createBullet(angle: Float) {
+        val bullet = world.body {
+            type = DynamicBody
+            circle(radius = 0.5f) { density = 10f }
+            position.set(Vector2(convertUnitsToMetres(firingPosition.x),
+                    convertUnitsToMetres(firingPosition.y)))
+            linearVelocity.set(Math.abs(20f/*MAX_STRENGTH*/ * -cos(angle) * (distance / 100f)),
+                    Math.abs(20f/*MAX_STRENGTH*/ * -sin(angle) * (distance / 100f)))
+        }
+        val sprite = Sprite(Assets.acorn)
+        sprite.setOrigin(sprite.width / 2, sprite.height / 2)
+        sprites.put(bullet, sprite)
     }
 
     private fun calculateAngleAndDistanceForBullet(screenX: Int, screenY: Int) {
@@ -109,10 +141,25 @@ class GameScreen : KtxScreen {
         world.step(delta, 6, 2)
         box2dCam.position.set(UNIT_WIDTH / 2, UNIT_HEIGHT / 2, 0f)
         box2dCam.update()
+        updateSpritePositions()
+    }
+
+    private fun updateSpritePositions() {
+        for (body in sprites.keys()) {
+            val sprite = sprites.get(body)
+            sprite.setPosition(
+                    convertMetresToUnits(body.position.x) - sprite.width / 2f,
+                    convertMetresToUnits(body.position.y) - sprite.height / 2f)
+            sprite.rotation = radiansToDegrees * body.angle
+        }
+        staticAcorn.setPosition(firingPosition.x - staticAcorn.width / 2f, firingPosition.y - staticAcorn.height / 2f)
     }
 
     private fun clearDeadBodies() {
-        for (body in toRemove) world.destroyBody(body)
+        for (body in toRemove) {
+            sprites.remove(body)
+            world.destroyBody(body)
+        }
         toRemove.clear()
     }
 
@@ -125,8 +172,13 @@ class GameScreen : KtxScreen {
 
     private fun draw() {
         batch.projectionMatrix = camera.combined
-        batch.use { }
-        orthogonalTiledMapRenderer.render()
+       orthogonalTiledMapRenderer.render()
+        batch.use {
+            for (sprite in sprites.values()) sprite.draw(it)
+            squirrel.draw(it)
+            staticAcorn.draw(it)
+            slingshot.draw(it)
+        }
     }
 
     private fun drawDebug() {
@@ -138,7 +190,7 @@ class GameScreen : KtxScreen {
         shapeRenderer.line(anchor.x, anchor.y, firingPosition.x,
                 firingPosition.y)
         shapeRenderer.end()
-        debugRenderer.render(world, box2dCam.combined)
+//        debugRenderer.render(world, box2dCam.combined)
     }
 
     override fun resize(width: Int, height: Int) {
