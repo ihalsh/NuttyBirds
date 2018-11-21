@@ -1,5 +1,7 @@
 package com.mygdx.game.Utils
 
+import com.badlogic.gdx.math.MathUtils
+
 class Constants {
 
     companion object {
@@ -13,6 +15,11 @@ class Constants {
         const val ENEMY = "enemy"
         const val UNIT_WIDTH = WORLD_WIDTH / (UNITS_PER_METER * 2)
         const val UNIT_HEIGHT = WORLD_HEIGHT / (UNITS_PER_METER * 2)
+
+        const val MAX_STRENGTH = 15f
+        const val MAX_DISTANCE = 100f
+        const val UPPER_ANGLE = 3 * MathUtils.PI / 2f
+        const val LOWER_ANGLE = MathUtils.PI / 2f
 
         //TiledObjectBodyBuilder
         const val PIXELS_PER_TILE = 32f
