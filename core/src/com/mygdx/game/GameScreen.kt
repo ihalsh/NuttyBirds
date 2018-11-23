@@ -19,7 +19,9 @@ import com.badlogic.gdx.utils.Pools
 import com.badlogic.gdx.utils.viewport.FitViewport
 import com.mygdx.game.Entities.Acorn
 import com.mygdx.game.Utils.Assets
+import com.mygdx.game.Utils.Assets.acorn
 import com.mygdx.game.Utils.Constants.Companion.ACORN
+import com.mygdx.game.Utils.Constants.Companion.ACORN_COUNT
 import com.mygdx.game.Utils.Constants.Companion.ENEMY
 import com.mygdx.game.Utils.Constants.Companion.LOWER_ANGLE
 import com.mygdx.game.Utils.Constants.Companion.MAX_DISTANCE
@@ -114,11 +116,19 @@ class GameScreen : KtxScreen {
             userData = ACORN
             linearVelocity.set(Math.abs(20f/*MAX_STRENGTH*/ * -cos(angle) * (distance / 100f)),
                     Math.abs(20f/*MAX_STRENGTH*/ * -sin(angle) * (distance / 100f)))
-        }
-
+        }.apply { setTransform(Vector2(convertUnitsToMetres(firingPosition.x),
+                convertUnitsToMetres(firingPosition.y)), 0f) }
+        checkLimitAndRemoveAcornIfNecessary()
         acorns.put(acorn, acornPool.obtain())
-        acorn.setTransform(Vector2(convertUnitsToMetres(firingPosition.x),
-                convertUnitsToMetres(firingPosition.y)), 0f)
+    }
+
+    private fun checkLimitAndRemoveAcornIfNecessary() {
+        if (acorns.size == ACORN_COUNT) {
+            val body = acorns.keys().iterator().next()
+            toRemove.add(body)
+            val acorn = acorns.remove(body)
+            acornPool.free(acorn)
+        }
     }
 
     private fun calculateAngleAndDistanceForAcorn(screenX: Int, screenY: Int) {
