@@ -16,6 +16,7 @@ class Constants {
         const val FLOOR = "floor"
         const val HORIZONTAL = "h"
         const val VERTICAL = "v"
+        const val ACORN = "a"
         const val UNIT_WIDTH = WORLD_WIDTH / (UNITS_PER_METER * 2)
         const val UNIT_HEIGHT = WORLD_HEIGHT / (UNITS_PER_METER * 2)
 
@@ -30,5 +31,8 @@ class Constants {
         const val PHYSICS_BUILDINGS_LAYER = "Physics_Buildings"
         const val FLOOR_LAYER = "Physics_Floor"
         const val PHYSICS_BIRDS_LAYER = "Physics_Birds"
+
+        //Acorn Pool
+        const val ACORN_COUNT = 3
     }
 }

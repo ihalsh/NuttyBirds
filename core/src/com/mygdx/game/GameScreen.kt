@@ -8,16 +8,18 @@ import com.badlogic.gdx.graphics.g2d.Sprite
 import com.badlogic.gdx.graphics.g2d.SpriteBatch
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer
-import com.badlogic.gdx.math.Interpolation.circle
-import com.badlogic.gdx.math.MathUtils
 import com.badlogic.gdx.math.MathUtils.*
 import com.badlogic.gdx.math.Vector2
 import com.badlogic.gdx.physics.box2d.*
 import com.badlogic.gdx.physics.box2d.BodyDef.BodyType.DynamicBody
 import com.badlogic.gdx.utils.Array
 import com.badlogic.gdx.utils.ObjectMap
+import com.badlogic.gdx.utils.OrderedMap
+import com.badlogic.gdx.utils.Pools
 import com.badlogic.gdx.utils.viewport.FitViewport
+import com.mygdx.game.Entities.Acorn
 import com.mygdx.game.Utils.Assets
+import com.mygdx.game.Utils.Constants.Companion.ACORN
 import com.mygdx.game.Utils.Constants.Companion.ENEMY
 import com.mygdx.game.Utils.Constants.Companion.LOWER_ANGLE
 import com.mygdx.game.Utils.Constants.Companion.MAX_DISTANCE
@@ -39,10 +41,7 @@ import ktx.box2d.createWorld
 import ktx.box2d.earthGravity
 import ktx.graphics.use
 import ktx.log.info
-import com.sun.awt.SecurityWarning.setPosition
-import sun.awt.windows.ThemeReader.getPosition
-import jdk.nashorn.internal.objects.NativeObject.keys
-import com.badlogic.gdx.graphics.Texture
+
 
 class GameScreen : KtxScreen {
 
@@ -67,6 +66,9 @@ class GameScreen : KtxScreen {
     private val squirrel = Sprite(Assets.squirrel).apply { setPosition(32f, 64f) }
     private val staticAcorn = Sprite(Assets.acorn)
 
+    private val acorns = OrderedMap<Body, Acorn>()
+    private var acornPool = Pools.get<Acorn>(Acorn::class.java)
+
     override fun show() {
         viewport.apply()
         camera.update()
@@ -89,14 +91,13 @@ class GameScreen : KtxScreen {
 
         Gdx.input.inputProcessor = object : InputAdapter() {
             override fun touchDragged(screenX: Int, screenY: Int, pointer: Int): Boolean {
-                calculateAngleAndDistanceForBullet(screenX, screenY)
-
+                calculateAngleAndDistanceForAcorn(screenX, screenY)
                 return true
             }
 
             override fun touchUp(screenX: Int, screenY: Int, pointer: Int,
                                  button: Int): Boolean {
-                createBullet(angle)
+                createAcorn(angle)
                 firingPosition.set(anchor.cpy())
                 return true
             }
@@ -106,21 +107,21 @@ class GameScreen : KtxScreen {
     }
 
 
-    private fun createBullet(angle: Float) {
-        val bullet = world.body {
+    private fun createAcorn(angle: Float) {
+        val acorn = world.body {
             type = DynamicBody
-            circle(radius = 0.5f) { density = 10f }
-            position.set(Vector2(convertUnitsToMetres(firingPosition.x),
-                    convertUnitsToMetres(firingPosition.y)))
+            circle(radius = 0.5f) { density = 2f }
+            userData = ACORN
             linearVelocity.set(Math.abs(20f/*MAX_STRENGTH*/ * -cos(angle) * (distance / 100f)),
                     Math.abs(20f/*MAX_STRENGTH*/ * -sin(angle) * (distance / 100f)))
         }
-        val sprite = Sprite(Assets.acorn)
-        sprite.setOrigin(sprite.width / 2, sprite.height / 2)
-        sprites.put(bullet, sprite)
+
+        acorns.put(acorn, acornPool.obtain())
+        acorn.setTransform(Vector2(convertUnitsToMetres(firingPosition.x),
+                convertUnitsToMetres(firingPosition.y)), 0f)
     }
 
-    private fun calculateAngleAndDistanceForBullet(screenX: Int, screenY: Int) {
+    private fun calculateAngleAndDistanceForAcorn(screenX: Int, screenY: Int) {
         firingPosition.set(screenX.toFloat(), screenY.toFloat())
         viewport.unproject(firingPosition)
         distance = distanceBetweenTwoPoints(anchor, firingPosition)
@@ -142,6 +143,17 @@ class GameScreen : KtxScreen {
         box2dCam.position.set(UNIT_WIDTH / 2, UNIT_HEIGHT / 2, 0f)
         box2dCam.update()
         updateSpritePositions()
+        updateAcornPositions()
+    }
+
+    private fun updateAcornPositions() {
+
+        for (acornEntry in acorns) {
+            acornEntry.value.setPosition(convertMetresToUnits(acornEntry.key.position.x) -
+                    acornEntry.value.width / 2f,
+                    convertMetresToUnits(acornEntry.key.position.y) - acornEntry.value.height / 2f)
+            acornEntry.value.setRotation(radiansToDegrees * acornEntry.key.angle)
+        }
     }
 
     private fun updateSpritePositions() {
@@ -172,12 +184,13 @@ class GameScreen : KtxScreen {
 
     private fun draw() {
         batch.projectionMatrix = camera.combined
-       orthogonalTiledMapRenderer.render()
+        orthogonalTiledMapRenderer.render()
         batch.use {
             for (sprite in sprites.values()) sprite.draw(it)
             squirrel.draw(it)
             staticAcorn.draw(it)
             slingshot.draw(it)
+            for (acorn in acorns.values()) acorn.draw(it)
         }
     }
 
